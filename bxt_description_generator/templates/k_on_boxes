@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<style type="text/css">
+body {
+	background-color: #ffffff;
+	color:#667686;
+	text-align: left;
+	margin: auto;
+	font-family: Calibri, "Nimbus Sans L", Helvetica, sans-serif;
+	font-size: small;
+}
+
+table {
+	display: table;
+	border-spacing: 10px;
+	color:#667686;
+	font-family: Calibri, Helvetica, sans-serif;
+	font-size: small;
+
+}
+
+tr {
+	color:#667686;
+	display: table-row;
+}
+
+td {
+	display: table-cell;
+	min-width: 430px;
+	padding: 10px;
+	border: solid 2px #667686;
+	vertical-align: top;
+}
+
+.wrapper {
+    min-width: 888px;
+}
+
+.container {
+    margin: 5px;
+    padding: 10px;
+    border: 2px solid #667686;
+    vertical-align: top;
+    min-width: 430px;
+    min-height: 580px;
+    float: left;
+}
+
+.album {
+	color:#667686;
+	max-width: 30em;
+	margin: auto;
+}
+
+.vocal {
+	color:#667686;
+	max-width: 50em;
+	margin: auto;
+}
+
+.header1 {
+	color:#667686;
+	font-size: 1.4em;
+	font-weight: bold;
+	text-align: center;
+}
+
+.header2 {
+	color:#667686;
+	font-size: 1.2em;
+	text-align: center;
+}
+
+.header3 {
+	color:#667686;
+	font-size: 0.6em;
+	font-style: italic;
+	font-weight: normal;
+}
+
+img {
+	margin: 0px;
+	max-width: 300px;
+	max-height: 300px;
+	min-width: 100px;
+	min-height: 100px;
+	padding: 5px;
+	border: 1px dotted #666666;
+}
+
+.imgborder {
+	/*border: 1px solid #666666;*/
+	height: 318px;
+	width: 320px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	text-align: center;
+}
+
+.label {
+    font-weight: bold;
+}
+
+select {
+    min-width: 200px;
+    max-width: 330px;
+}
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+{% for album in albums %}
+    <div class="container">
+        <div class="header1">{{album.name|escape}}</div>
+        <div class="header2">{{album.artists|join(', ')|escape}}&nbsp;</div>
+        <div class="header3"></div>
+        <div class="imgborder"><img src="{{album.album_art}}"></div>
+        <div class="album">
+            <span class="label">Catalog No.:</span> {{album.catalog_no}}<br />
+	        <span class="label">Codec:</span> {{album.extensions|join(', ')|upper}}<br />
+	        <span class="label">Release Year:</span> {{album.dates|join(', ')|escape}}<br />
+	        <span class="label">Total Length:</span> {{album.length|pretty_time}}<br />
+	        <span class="label">Total Size:</span> {{"%.2f MiB" % (album.size/1048576)}}<br />
+	        <br />
+	        <span class="label">Tracklist:</span><br />
+	            {% for disc in album %}Disc #{{disc.number}}
+		        <select>{% for track in disc %}
+                    <option>{{track.title|escape}}</option>{% endfor %}
+		        </select><br />{% endfor %}<br />
+            <div class="footer">
+                <span class="label">Ripper:</span><em>{{album.ripper}}</em><br />
+                <span class="label">Scans:</span> {% if album.scans %}Included ({{album.scans|count}} file(s).){% else %}None.{% endif %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</div>
+</body>
+
+</html>
