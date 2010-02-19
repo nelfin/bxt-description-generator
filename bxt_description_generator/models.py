@@ -83,7 +83,7 @@ class Album:
         self.average_bitrate = None
         self.extensions = []
         self.dates = []
-        self.album_art = "/home/andrew/Scribbles/py/bxt/bxt-py3/bdg/out/strikewitches-square.png"
+        self.album_art = "http://phy-img4.imageshack.us/img4/3372/osto.jpg"
     def attach_disc(self, disc):
         self.discs[disc.number] = disc
     def attach_scans(self, scans):

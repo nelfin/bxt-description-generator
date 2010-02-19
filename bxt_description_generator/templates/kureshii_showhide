@@ -4,9 +4,8 @@
 <head>
 
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>-->
-<!--<script type="text/Javascript" src="http://s1.bakabt.com/static/common.min.js"></script>-->
-<script type="text/javascript" src="js/jquery-1.3.2.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+<script type="text/Javascript" src="http://s1.bakabt.com/static/common.min.js"></script>
 <style type="text/css">
 a { text-decoration: underline; }
 a.showhidelink { cursor: pointer;}
@@ -56,7 +55,7 @@ function showhide(id) {
 
 {% for album in albums %}
 <div class="container">
-<div class="column"><img src="{{album.album_art.path}}" alt="Strike Witches!"></div>
+<div class="column"><img src="{{album.album_art}}" alt="Strike Witches!"></div>
 <div class="column">
 	<div class="subtitle">{{album.artists|join(', ')|escape}}</div><div class="title">{{album.name|escape}}</div>
 		
