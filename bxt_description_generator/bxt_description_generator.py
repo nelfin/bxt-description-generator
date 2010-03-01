@@ -9,6 +9,7 @@ import sys
 import os
 import os.path
 import re
+import ConfigParser
 from models import *
 from jinja2 import Environment, PackageLoader
 from optparse import OptionParser
@@ -49,6 +50,13 @@ def add_scan(path, scan, scans):
         scans[guess] = []
     scans[guess].append(os.path.join(path, scan))
 
+def add_metafile(path, file, metafiles):
+    full_path = os.path.join(path, file)
+    meta = ConfigParser.RawConfigParser()
+    if meta.read(full_path):
+        album = meta.sections()[0]
+        metafiles[album] = meta
+
 def merge_scans(albums, scans):
     for album in albums:
         if album.name in scans:
@@ -63,6 +71,12 @@ def merge_scans2(albums, scans):
                 if bit in albums:
                     albums[bit].attach_scans([name])
                     break
+
+def merge_metafiles(albums, metafiles):
+    for name, item in metafiles.items():
+        name = unicode(name)
+        if name in albums:
+            albums[name].attach_metafile(item)
 
 # are we running this standalone, rather than as a module?
 def main():
@@ -89,9 +103,12 @@ def main():
     
     scans = {}
     albums = {}
+    metafiles = {}
     for branch, dirs, files in os.walk(directory):
         for filename in files:
-            #if filename == ".albuminfo"
+            if filename == ".albuminfo":
+                add_metafile(branch, filename, metafiles)
+                continue
             extension = os.path.splitext(filename)[1][1:]
             if extension in ignoreFileExtensions:
                 continue
@@ -99,7 +116,8 @@ def main():
                 add_scan(branch, filename, scans)
             else:
                 add_track(Track(os.path.join(branch, filename)), albums)
-    
+
+    merge_metafiles(albums, metafiles)
     merge_scans2(albums, scans)
     
     root_node = albums.values()

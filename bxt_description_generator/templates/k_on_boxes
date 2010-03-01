@@ -134,7 +134,7 @@ select {
                     <option>{{track.title|escape}}</option>{% endfor %}
 		        </select><br />{% endfor %}<br />
             <div class="footer">
-                <span class="label">Ripper:</span><em>{{album.ripper}}</em><br />
+                <span class="label">Ripper:</span>{{album.ripper}}<br />
                 <span class="label">Scans:</span> {% if album.scans %}Included ({{album.scans|count}} file(s).){% else %}None.{% endif %}
             </div>
         </div>

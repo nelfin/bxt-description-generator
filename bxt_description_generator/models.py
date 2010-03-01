@@ -73,9 +73,9 @@ class Album:
     """
     def __init__(self, name):
         self.name = name
-        self.ripper = "unknown"
+        self.ripper = ""
         self.artists = []
-        self.catalog_no = "PCCG-70036"
+        self.catalog_no = ""
         self.discs = {}
         self.scans = []
         self.length = 0
@@ -83,7 +83,7 @@ class Album:
         self.average_bitrate = None
         self.extensions = []
         self.dates = []
-        self.album_art = "http://phy-img4.imageshack.us/img4/3372/osto.jpg"
+        self.album_art = ""
     def attach_disc(self, disc):
         self.discs[disc.number] = disc
     def attach_scans(self, scans):
@@ -94,6 +94,14 @@ class Album:
         if track.discnumber not in self.discs:
             self.attach_disc(Disc(track.discnumber))
         self.discs[track.discnumber].attach_track(track)
+    def attach_metafile(self, config_parser):
+        for attribute in ["ripper","catalog_no","album_art"]:
+            try:
+                value = config_parser.get(self.name, attribute)
+                setattr(self, attribute, value)
+            except Exception:
+                # Fail silently
+                pass
     def tidy(self):
         for disc in self:
             disc.tidy()
