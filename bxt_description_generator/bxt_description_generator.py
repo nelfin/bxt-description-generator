@@ -59,11 +59,6 @@ def add_metafile(path, file, metafiles):
             metafiles[album] = meta
 
 def merge_scans(albums, scans):
-    for album in albums:
-        if album.name in scans:
-            album.attach_scans(scans[album.name])
-
-def merge_scans2(albums, scans):
     for seq in scans.values():
         for path in seq:
             bits = path.split(os.sep)
@@ -119,11 +114,10 @@ def main():
                 add_track(Track(os.path.join(branch, filename)), albums)
 
     merge_metafiles(albums, metafiles)
-    merge_scans2(albums, scans)
+    merge_scans(albums, scans)
     
     root_node = albums.values()
     root_node.sort(natural_sort)
-    #merge_scans(root_node, scans)
     for album in root_node:
         album.tidy()
     
