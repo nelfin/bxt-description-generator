@@ -54,8 +54,9 @@ def add_metafile(path, file, metafiles):
     full_path = os.path.join(path, file)
     meta = ConfigParser.RawConfigParser()
     if meta.read(full_path):
-        album = meta.sections()[0]
-        metafiles[album] = meta
+        sections = meta.sections()
+        for album in sections:
+            metafiles[album] = meta
 
 def merge_scans(albums, scans):
     for album in albums:
