@@ -113,9 +113,33 @@ def main():
             else:
                 add_track(Track(os.path.join(branch, filename)), albums)
 
+    if options.album_info:
+        filepath = os.path.join(directory, ".albuminfo")
+        album_index = ConfigParser.RawConfigParser()
+        album_index.read(filepath)
+        for album in albums:
+            if album not in metafiles:
+                sys.stdout.write("++ {0}\n".format(album))
+                ripper = raw_input("Ripper: ")
+                catalog_no = raw_input("Catalog #: ")
+                album_art = raw_input("Album art URL: ")
+                try:
+                    album_index.add_section(album)
+                    album_index.set(album, "ripper", ripper)
+                    album_index.set(album, "catalog_no", catalog_no)
+                    album_index.set(album, "album_art", album_art)
+                except DuplicateSectionError:
+                    # We've got 2 albums with the same name...
+                    pass
+        fp = open(filepath, "rw+")
+        album_index.write(fp)
+        fp.close()
+        add_metafile(directory, ".albuminfo", metafiles)
+
+    
     merge_metafiles(albums, metafiles)
     merge_scans(albums, scans)
-    
+
     root_node = albums.values()
     root_node.sort(natural_sort)
     for album in root_node:
@@ -147,4 +171,7 @@ if __name__ == "__main__":
     parser = OptionParser(usage)
     parser.add_option("-o","--outfile",dest="outfile",default=None,
                       help="output filename",metavar="FILE")
+    parser.add_option("-i","--album-info",dest="album_info",default=None,
+                      help="interactively prompt for album meta-info",
+                      action="store_true")
     sys.exit(main())
