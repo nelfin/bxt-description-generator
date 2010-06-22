@@ -1,34 +1,72 @@
 # -*- coding: utf-8 -*-
 
-import pygtk
-pygtk.require("2.0")
-import gtk
+import sys
 import os
 import os.path
+from optparse import OptionParser
+import tempfile
+import webbrowser
+try:
+    import imp
+    imp.reload(sys)
+except ImportError:
+    reload(sys)
 
-def queue_redraw(widget):
-    widget.queue_draw_area(0,0,-1,-1)
-    return None
+import backend as bdg
+
+try:
+    import pygtk
+    pygtk.require("2.0")
+    import gtk
+except:
+    ## BAIL!
+    sys.exit(1)
 
 
-class GUI:
+class BDG_GUI:
+    preview_path = None
+    template = "k_on_boxes" ## FIXME
+
     def update_preview_cb(self, file_chooser, preview_pic, preview_lbl):
         filename = file_chooser.get_preview_filename()
         try:
             files = os.listdir(filename)
             preview_lbl.set_text("Path: {0}\nFiles: {1}".format(filename,len(files)))
-            cover = os.path.join(filename, "cover.jpg")
+            cover = os.path.join(filename, "cover.jpg") ## FIXME
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(cover, 128, 128)
             preview_pic.set_from_pixbuf(pixbuf)
         except:
             pass
-        return
+        return None
+
+    def update_preview_button(self, filepath):
+        self.preview_path = filepath
+        return None
+
+    def btn_preview_clicked(self, widget, data=None):
+        if not self.preview_path:
+            self.files_btn_generate.emit("clicked")
+        webbrowser.open_new_tab(self.preview_path)
+        return None
+
+    def btn_generate_clicked(self, widget, data=None):
+        global parser
+        (options, args) = parser.parse_args()
+        directory = self.files_widget.get_filename()
+        source = bdg.generate_source(self.template, directory, options)
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(source)
+        self.update_source(source)
+        self.update_preview_button(f.name)
+        return None
 
     def update_source(self, source):
         self.source_tbf.set_text(source)
+        return None
 
     def destroy(self, widget, data=None):
         gtk.main_quit()
+        return None
 
     def __init__(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -72,22 +110,22 @@ class GUI:
         self.preview_lbl.set_size_request(400,128)
         self.preview_lbl.set_line_wrap(True)
         self.preview_lbl.show()
-
-        self.files_widget.connect("update-preview", self.update_preview_cb, self.preview_pic, self.preview_lbl)
-        ## End Preview
+        ## End Preview Pane
 
         ## Button Box
         self.files_btn_box = gtk.HButtonBox()
-        #self.files_tbl.attach(self.files_btn_box,0,2,2,3)
         self.files_widget.set_extra_widget(self.files_btn_box)
-        self.files_btn_box.set_size_request(400, 40)
-        #self.files_btn_box.set_border_width(10)
+        self.files_btn_box.set_size_request(400, 20)
         self.files_btn_box.set_layout(gtk.BUTTONBOX_END)
         self.files_btn_box.show()
 
         self.files_btn_generate = gtk.Button("Generate")
         self.files_btn_box.pack_start(self.files_btn_generate)
         self.files_btn_generate.show()
+
+        self.files_btn_preview = gtk.Button("Preview")
+        self.files_btn_box.pack_end(self.files_btn_preview)
+        self.files_btn_preview.show()
         ## End Button Box
 
         ### Right Box
@@ -96,15 +134,9 @@ class GUI:
         self.table.attach(self.right_box,1,2,0,1)
         self.right_box.show()
 
-        #self.source_frm = gtk.Frame("Source")
-        #self.source_frm.set_border_width(10)
-        #self.source_frm.set_size_request(700,700)
-        #self.source_frm.show()
-
-        self.source_vbx = gtk.VBox(False,10)
+        self.source_vbx = gtk.VBox(False,0)
         self.source_vbx.set_border_width(10)
         self.source_vbx.set_size_request(700,700)
-        #self.source_frm.add(self.source_vbx)
         self.source_vbx.show()
 
         self.source_win = gtk.ScrolledWindow()
@@ -122,15 +154,33 @@ class GUI:
         self.source_tbf.set_text("Hello world!")
 
         self.source_lbl = gtk.Label("Source")
-        #self.right_box.append_page(self.source_frm, self.source_lbl)
         self.right_box.append_page(self.source_vbx, self.source_lbl)
+        ### End Right Box
 
+        ###
+        ## SIGNAL HANDLERS
+
+        self.files_btn_generate.connect("clicked", self.btn_generate_clicked)
+        self.files_btn_preview.connect("clicked", self.btn_preview_clicked)
+        self.files_widget.connect("update-preview", self.update_preview_cb, self.preview_pic, self.preview_lbl)
+
+        ### Finishing up
         self.table.show()
         self.window.show()
+        return None
+
     def main(self):
         gtk.main()
+        return 0
 
 if __name__ == "__main__":
-    scratch = GUI()
-    scratch.main()
+    usage = "Usage: %prog <directory> [<template>] [options]"
+    parser = OptionParser(usage)
+    parser.add_option("-o","--outfile",dest="outfile",default=None,
+                      help="output filename",metavar="FILE")
+    parser.add_option("-i","--album-info",dest="album_info",default=None,
+                      help="interactively prompt for album meta-info",
+                      action="store_true")
+    gui = BDG_GUI()
+    exit(gui.main())
 

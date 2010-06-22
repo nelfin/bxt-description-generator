@@ -203,8 +203,6 @@ class Track:
                 setattr(self, prop, None)
         if not self.title:
             self.title  = self.name.rsplit('.', 1)[0].decode("utf-8") # Everything but the extension
-        #if not self.discnumber:
-        #    self.discnumber = deduce_discnumber(self.path)
 
         self.tracknumber = coerce_to_number(self.tracknumber)
         self.discnumber = coerce_to_number(self.discnumber)
