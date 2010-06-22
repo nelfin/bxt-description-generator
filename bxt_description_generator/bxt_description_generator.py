@@ -166,10 +166,6 @@ def main():
             return 1
 
     source = generate_source(template, directory)
-    import gui
-    bdg_gui = gui.GUI()
-    bdg_gui.update_source(source)
-    bdg_gui.main()
 
     try:
         if options.outfile:
