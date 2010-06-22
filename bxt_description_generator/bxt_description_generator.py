@@ -34,7 +34,7 @@ def pretty_time(secs, format = "{h:01.0f}:{m:02.0f}:{s:02.0f}"):
     """ Format a time according to a supplied format string """
     hours = secs // 3600
     secs -= 3600 * hours
-    mins = secs // 60
+    mins  = secs // 60
     secs -= 60 * mins
     return format.format(h = hours, m = mins, s = secs)
 
@@ -79,6 +79,7 @@ def main():
     global parser
     (options, args) = parser.parse_args()
     # Check to see if we have all the information we need
+    directory = None; template = None
     try:
         directory = args[0]
         template = args[1]
@@ -96,7 +97,7 @@ def main():
         except ImportError:
             sys.stderr.write("Usage: " + sys.argv[0] + " <directory> <template>\n")
             return 1
-    
+
     scans = {}
     albums = {}
     metafiles = {}
@@ -109,6 +110,8 @@ def main():
             if extension in ignoreFileExtensions:
                 continue
             elif extension in imageFileExtensions:
+                ### FIXME:
+                sys.stderr.write("{0} {1}\n".format(branch, filename))
                 add_scan(branch, filename, scans)
             else:
                 add_track(Track(os.path.join(branch, filename)), albums)
@@ -136,7 +139,6 @@ def main():
         fp.close()
         add_metafile(directory, ".albuminfo", metafiles)
 
-    
     merge_metafiles(albums, metafiles)
     merge_scans(albums, scans)
 
@@ -144,21 +146,23 @@ def main():
     root_node.sort(natural_sort)
     for album in root_node:
         album.tidy()
-    
+
     env = Environment(loader=PackageLoader("bxt_description_generator", "templates"))
     env.filters["cleanify"] = cleanify
     env.filters["pretty_time"] = pretty_time
     template = env.get_template(template)
     output = template.render(albums=root_node).encode("utf-8")
 
-    if options.outfile:
-        try:
+    try:
+        if options.outfile:
             f = open(options.outfile,"wb")
-            f.write(output)
-            f.close()
-        except IOError:
-            sys.stderr.write("Unable to write to {0}".format(options.outfile))
-            return 1
+        else:
+            f = tempfile.NamedTemporaryFile(delete=False)
+        f.write(output)
+        f.close()
+    except IOError:
+        sys.stderr.write("Unable to write to {0}".format(options.outfile))
+        return 1
     else:
         try:
             easygui.codebox(text=output)

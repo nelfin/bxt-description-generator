@@ -30,7 +30,7 @@ def lazy_alphabetic(t):
     t = _re.sub("\s{2,}"," ",t)
     t = t.strip()
     return t
-    
+
 # Comparisons
 def natural_sort(x, y):
     return cmp(lazy_alphabetic(x.name), lazy_alphabetic(y.name))
@@ -56,8 +56,8 @@ class UnknownFileException(Exception):
 
 class Album:
     """
-    Abstract representation of an album.
-    
+    Abstract representation of an album
+
     name: album name
     artists: list of contributing artists
     ripper: album ripper
@@ -127,6 +127,7 @@ class Album:
 class Disc:
     """
     Abstract representation of a disc
+
     number: disc number
     name: disc name
     tracklist: list of child Tracks
@@ -150,7 +151,8 @@ class Disc:
 
 class Track:
     """
-    Abstract representation of a track (essentially a file).
+    Abstract representation of a track (essentially a file)
+
     name: filename
     path: full path
     size: size of file in bytes
@@ -192,14 +194,16 @@ class Track:
         if tags.__class__ == mutagen.mp3.MP3:
             import mutagen.easyid3
             tags = mutagen.easyid3.EasyID3(self.path)
-        for prop in ["title", "artist", "album", "tracknumber", "discnumber", "date"]:
+
+        properties = ["title", "artist", "album", "tracknumber", "discnumber", "date"]
+        for prop in properties:
             if prop in tags:
                 setattr(self, prop, tags[prop][0])
             else:
                 setattr(self, prop, None)
         if not self.title:
             self.title  = self.name.rsplit('.', 1)[0].decode("utf-8") # Everything but the extension
-        
+
         self.tracknumber = coerce_to_number(self.tracknumber)
         self.discnumber = coerce_to_number(self.discnumber)
         self.date = coerce_to_number(self.date)
