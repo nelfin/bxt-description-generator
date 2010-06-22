@@ -36,7 +36,7 @@ class BDG_GUI:
             pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(cover, 128, 128)
             preview_pic.set_from_pixbuf(pixbuf)
         except:
-            pass
+            preview_pic.clear()
         return None
 
     def update_preview_button(self, filepath):
@@ -54,7 +54,8 @@ class BDG_GUI:
         (options, args) = parser.parse_args()
         directory = self.files_widget.get_filename()
         source = bdg.generate_source(self.template, directory, options)
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        ## suffix = ".htm" for the sake of IE
+        with tempfile.NamedTemporaryFile(delete=False,suffix=".htm") as f:
             f.write(source)
         self.update_source(source)
         self.update_preview_button(f.name)

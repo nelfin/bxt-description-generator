@@ -192,15 +192,20 @@ class Track:
         except (AttributeError, ValueError, TypeError):
             pass
         if tags.__class__ == mutagen.mp3.MP3:
+            try:
+                self.discnumber = tags['TPOS'][0]
+            except:
+                pass # Try and extract discnumber
             import mutagen.easyid3
             tags = mutagen.easyid3.EasyID3(self.path)
 
         properties = ["title", "artist", "album", "tracknumber", "discnumber", "date"]
         for prop in properties:
-            if prop in tags:
+            try:
                 setattr(self, prop, tags[prop][0])
-            else:
-                setattr(self, prop, None)
+            except ValueError:
+                if not hasattr(self, prop): # Don't clobber discnumber
+                    setattr(self, prop, None)
         if not self.title:
             self.title  = self.name.rsplit('.', 1)[0].decode("utf-8") # Everything but the extension
 
