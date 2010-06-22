@@ -13,6 +13,7 @@ import ConfigParser
 from models import *
 from jinja2 import Environment, PackageLoader
 from optparse import OptionParser
+import tempfile
 try:
     import imp
     imp.reload(sys)
@@ -74,6 +75,72 @@ def merge_metafiles(albums, metafiles):
         if name in albums:
             albums[name].attach_metafile(item)
 
+def generate_albuminfo(albums, metafiles, directory):
+    filepath = os.path.join(directory, ".albuminfo")
+    album_index = ConfigParser.RawConfigParser()
+    album_index.read(filepath)
+    for album in albums:
+        if album not in metafiles:
+            sys.stdout.write("++ {0}\n".format(album))
+            ripper = raw_input("Ripper: ")
+            catalog_no = raw_input("Catalog #: ")
+            album_art = raw_input("Album art URL: ")
+            try:
+                album_index.add_section(album)
+                album_index.set(album, "ripper", ripper)
+                album_index.set(album, "catalog_no", catalog_no)
+                album_index.set(album, "album_art", album_art)
+            except DuplicateSectionError:
+                # We've got 2 albums with the same name...
+                sys.stderr.write("Duplicate album names")
+    try:
+        fp = open(filepath, "rw+")
+        album_index.write(fp)
+        fp.close()
+        add_metafile(directory, ".albuminfo", metafiles)
+    except:
+        sys.stderr.write("Unable to write to {0}".format(filepath))
+
+
+def generate_source(template, directory):
+    global parser
+    (options, args) = parser.parse_args()
+
+    scans = {}
+    albums = {}
+    metafiles = {}
+    for branch, dirs, files in os.walk(directory):
+        for filename in files:
+            if filename == ".albuminfo":
+                add_metafile(branch, filename, metafiles)
+                continue
+            extension = os.path.splitext(filename)[1][1:]
+            if extension in ignoreFileExtensions:
+                continue
+            elif extension in imageFileExtensions:
+                add_scan(branch, filename, scans)
+            else:
+                add_track(Track(os.path.join(branch, filename)), albums)
+
+    if options.album_info:
+        generate_albuminfo(albums, metafiles, directory)
+
+    merge_metafiles(albums, metafiles)
+    merge_scans(albums, scans)
+
+    root_node = albums.values()
+    root_node.sort(natural_sort)
+    for album in root_node:
+        album.tidy()
+
+    env = Environment(loader=PackageLoader("bxt_description_generator", "templates"))
+    env.filters["cleanify"] = cleanify
+    env.filters["pretty_time"] = pretty_time
+    template = env.get_template(template)
+    source = template.render(albums=root_node).encode("utf-8")
+
+    return source
+
 # are we running this standalone, rather than as a module?
 def main():
     global parser
@@ -98,76 +165,28 @@ def main():
             sys.stderr.write("Usage: " + sys.argv[0] + " <directory> <template>\n")
             return 1
 
-    scans = {}
-    albums = {}
-    metafiles = {}
-    for branch, dirs, files in os.walk(directory):
-        for filename in files:
-            if filename == ".albuminfo":
-                add_metafile(branch, filename, metafiles)
-                continue
-            extension = os.path.splitext(filename)[1][1:]
-            if extension in ignoreFileExtensions:
-                continue
-            elif extension in imageFileExtensions:
-                ### FIXME:
-                sys.stderr.write("{0} {1}\n".format(branch, filename))
-                add_scan(branch, filename, scans)
-            else:
-                add_track(Track(os.path.join(branch, filename)), albums)
-
-    if options.album_info:
-        filepath = os.path.join(directory, ".albuminfo")
-        album_index = ConfigParser.RawConfigParser()
-        album_index.read(filepath)
-        for album in albums:
-            if album not in metafiles:
-                sys.stdout.write("++ {0}\n".format(album))
-                ripper = raw_input("Ripper: ")
-                catalog_no = raw_input("Catalog #: ")
-                album_art = raw_input("Album art URL: ")
-                try:
-                    album_index.add_section(album)
-                    album_index.set(album, "ripper", ripper)
-                    album_index.set(album, "catalog_no", catalog_no)
-                    album_index.set(album, "album_art", album_art)
-                except DuplicateSectionError:
-                    # We've got 2 albums with the same name...
-                    pass
-        fp = open(filepath, "rw+")
-        album_index.write(fp)
-        fp.close()
-        add_metafile(directory, ".albuminfo", metafiles)
-
-    merge_metafiles(albums, metafiles)
-    merge_scans(albums, scans)
-
-    root_node = albums.values()
-    root_node.sort(natural_sort)
-    for album in root_node:
-        album.tidy()
-
-    env = Environment(loader=PackageLoader("bxt_description_generator", "templates"))
-    env.filters["cleanify"] = cleanify
-    env.filters["pretty_time"] = pretty_time
-    template = env.get_template(template)
-    output = template.render(albums=root_node).encode("utf-8")
+    source = generate_source(template, directory)
+    import gui
+    bdg_gui = gui.GUI()
+    bdg_gui.update_source(source)
+    bdg_gui.main()
 
     try:
         if options.outfile:
             f = open(options.outfile,"wb")
         else:
             f = tempfile.NamedTemporaryFile(delete=False)
-        f.write(output)
+        f.write(source)
         f.close()
     except IOError:
         sys.stderr.write("Unable to write to {0}".format(options.outfile))
         return 1
     else:
         try:
-            easygui.codebox(text=output)
+            easygui.codebox(text=source)
         except NameError:
-            sys.stdout.write(output)
+            sys.stdout.write(source)
+
     return 0
 
 if __name__ == "__main__":

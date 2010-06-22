@@ -1,0 +1,136 @@
+# -*- coding: utf-8 -*-
+
+import pygtk
+pygtk.require("2.0")
+import gtk
+import os
+import os.path
+
+def queue_redraw(widget):
+    widget.queue_draw_area(0,0,-1,-1)
+    return None
+
+
+class GUI:
+    def update_preview_cb(self, file_chooser, preview_pic, preview_lbl):
+        filename = file_chooser.get_preview_filename()
+        try:
+            files = os.listdir(filename)
+            preview_lbl.set_text("Path: {0}\nFiles: {1}".format(filename,len(files)))
+            cover = os.path.join(filename, "cover.jpg")
+            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(cover, 128, 128)
+            preview_pic.set_from_pixbuf(pixbuf)
+        except:
+            pass
+        return
+
+    def update_source(self, source):
+        self.source_tbf.set_text(source)
+
+    def destroy(self, widget, data=None):
+        gtk.main_quit()
+
+    def __init__(self):
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.connect("destroy", self.destroy)
+        self.window.set_border_width(10)
+
+        self.table = gtk.Table(1,2,False)
+        self.window.add(self.table)
+
+        ### Left Box
+        self.left_box = gtk.Notebook()
+        self.left_box.set_tab_pos(gtk.POS_TOP)
+        self.table.attach(self.left_box,0,1,0,1)
+        self.left_box.show()
+
+        self.files_frm = gtk.Frame("Files")
+        self.files_frm.set_border_width(10)
+        self.files_frm.set_size_request(700,800)
+        self.files_frm.show()
+
+        self.files_tbl = gtk.Table(3,2,False)
+        self.files_frm.add(self.files_tbl)
+        self.files_tbl.show()
+
+        self.files_widget = gtk.FileChooserWidget(action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        self.files_tbl.attach(self.files_widget,0,2,1,2,xoptions=gtk.SHRINK|gtk.FILL|gtk.EXPAND,xpadding=10,ypadding=10)
+        self.files_widget.set_size_request(500,500)
+        self.files_widget.show()
+
+        self.files_lbl = gtk.Label("Files")
+        self.left_box.append_page(self.files_frm, self.files_lbl)
+
+        ## Preview Pane
+        self.preview_pic = gtk.Image()
+        self.files_tbl.attach(self.preview_pic,0,1,0,1)
+        self.preview_pic.set_size_request(128,128)
+        self.preview_pic.show()
+
+        self.preview_lbl = gtk.Label("")
+        self.files_tbl.attach(self.preview_lbl,1,2,0,1)
+        self.preview_lbl.set_size_request(400,128)
+        self.preview_lbl.set_line_wrap(True)
+        self.preview_lbl.show()
+
+        self.files_widget.connect("update-preview", self.update_preview_cb, self.preview_pic, self.preview_lbl)
+        ## End Preview
+
+        ## Button Box
+        self.files_btn_box = gtk.HButtonBox()
+        #self.files_tbl.attach(self.files_btn_box,0,2,2,3)
+        self.files_widget.set_extra_widget(self.files_btn_box)
+        self.files_btn_box.set_size_request(400, 40)
+        #self.files_btn_box.set_border_width(10)
+        self.files_btn_box.set_layout(gtk.BUTTONBOX_END)
+        self.files_btn_box.show()
+
+        self.files_btn_generate = gtk.Button("Generate")
+        self.files_btn_box.pack_start(self.files_btn_generate)
+        self.files_btn_generate.show()
+        ## End Button Box
+
+        ### Right Box
+        self.right_box = gtk.Notebook()
+        self.right_box.set_tab_pos(gtk.POS_TOP)
+        self.table.attach(self.right_box,1,2,0,1)
+        self.right_box.show()
+
+        #self.source_frm = gtk.Frame("Source")
+        #self.source_frm.set_border_width(10)
+        #self.source_frm.set_size_request(700,700)
+        #self.source_frm.show()
+
+        self.source_vbx = gtk.VBox(False,10)
+        self.source_vbx.set_border_width(10)
+        self.source_vbx.set_size_request(700,700)
+        #self.source_frm.add(self.source_vbx)
+        self.source_vbx.show()
+
+        self.source_win = gtk.ScrolledWindow()
+        self.source_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.source_vbx.pack_start(self.source_win)
+        self.source_win.show()
+
+        self.source_tvw = gtk.TextView()
+        self.source_tbf = self.source_tvw.get_buffer()
+        self.source_win.add(self.source_tvw)
+        self.source_tvw.set_editable(False)
+        self.source_tvw.set_cursor_visible(False)
+        self.source_tvw.show()
+
+        self.source_tbf.set_text("Hello world!")
+
+        self.source_lbl = gtk.Label("Source")
+        #self.right_box.append_page(self.source_frm, self.source_lbl)
+        self.right_box.append_page(self.source_vbx, self.source_lbl)
+
+        self.table.show()
+        self.window.show()
+    def main(self):
+        gtk.main()
+
+if __name__ == "__main__":
+    scratch = GUI()
+    scratch.main()
+
