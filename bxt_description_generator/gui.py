@@ -23,6 +23,7 @@ except:
     sys.stderr.write("{0} requires PyGTK-2.0\n".format(sys.argv[0]))
     sys.exit(1)
 
+import gobject
 
 class BDG_GUI:
     preview_path = None
@@ -45,30 +46,25 @@ class BDG_GUI:
         return None
 
     def btn_preview_clicked(self, widget, data=None):
-        if not self.preview_path:
-            self.files_btn_generate.emit("clicked")
-        webbrowser.open_new_tab(self.preview_path)
+        if self.preview_path is not None:
+            webbrowser.open_new_tab(self.preview_path)
         return None
 
-    def start_generate_source(self, template, directory, success_cb=None):
-        if not success_cb:
-            success_cb = self.update_source
-        t_source = threading.Thread(target=bdg.generate_source, args=(template, directory))
-        # t.start()
-        # t.join()
-        ## Some progressbar action maybe?
-
-    def btn_generate_clicked(self, widget, data=None):
+    def start_generate_source(self, template, directory):
         global parser
         (options, args) = parser.parse_args()
-        directory = self.files_widget.get_filename()
-        ## TODO: push generate_source into a seperate thread, stop locking up UI
-        self.start_generate_source(self.template, directory)
+        source = bdg.generate_source(template, directory, options)
         ## suffix = ".htm" for the sake of IE
         with tempfile.NamedTemporaryFile(delete=False,suffix=".htm") as f:
             f.write(source)
-        self.update_source(source)
+        gobject.idle_add(self.update_source, source)
         self.update_preview_button(f.name)
+        ## Some progressbar action maybe?
+
+    def btn_generate_clicked(self, widget, data=None):
+        directory = self.files_widget.get_filename()
+        t = threading.Thread(target=self.start_generate_source, args=(self.template, directory))
+        t.start()
         return None
 
     def update_source(self, source):
@@ -192,6 +188,7 @@ if __name__ == "__main__":
     parser.add_option("-i","--album-info",dest="album_info",default=None,
                       help="interactively prompt for album meta-info",
                       action="store_true")
+    gobject.threads_init()
     gui = BDG_GUI()
     exit(gui.main())
 
