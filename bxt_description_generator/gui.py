@@ -18,7 +18,7 @@ try:
     import pygtk
     pygtk.require("2.0")
     import gtk
-except:
+except Exception:
     sys.stderr.write("{0} requires PyGTK-2.0\n".format(sys.argv[0]))
     sys.exit(1)
 
@@ -41,6 +41,7 @@ class BDG_GUI:
 
     def update_preview_button(self, filepath):
         self.preview_path = filepath
+        self.files_btn_preview.set_sensitive(True)
         return None
 
     def btn_preview_clicked(self, widget, data=None):
@@ -125,6 +126,7 @@ class BDG_GUI:
         self.files_btn_generate.show()
 
         self.files_btn_preview = gtk.Button("Preview")
+        self.files_btn_preview.set_sensitive(False)
         self.files_btn_box.pack_end(self.files_btn_preview)
         self.files_btn_preview.show()
         ## End Button Box
