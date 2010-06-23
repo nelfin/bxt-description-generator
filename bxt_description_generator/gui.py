@@ -6,6 +6,7 @@ import os.path
 from optparse import OptionParser
 import tempfile
 import webbrowser
+import threading
 try:
     import imp
     imp.reload(sys)
@@ -49,11 +50,20 @@ class BDG_GUI:
         webbrowser.open_new_tab(self.preview_path)
         return None
 
+    def start_generate_source(self, template, directory, success_cb=None):
+        if not success_cb:
+            success_cb = self.update_source
+        t_source = threading.Thread(target=bdg.generate_source, args=(template, directory))
+        # t.start()
+        # t.join()
+        ## Some progressbar action maybe?
+
     def btn_generate_clicked(self, widget, data=None):
         global parser
         (options, args) = parser.parse_args()
         directory = self.files_widget.get_filename()
-        source = bdg.generate_source(self.template, directory, options)
+        ## TODO: push generate_source into a seperate thread, stop locking up UI
+        self.start_generate_source(self.template, directory)
         ## suffix = ".htm" for the sake of IE
         with tempfile.NamedTemporaryFile(delete=False,suffix=".htm") as f:
             f.write(source)
