@@ -19,7 +19,7 @@ try:
     pygtk.require("2.0")
     import gtk
 except:
-    ## BAIL!
+    sys.stderr.write("{0} requires PyGTK-2.0\n".format(sys.argv[0])
     sys.exit(1)
 
 
