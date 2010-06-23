@@ -171,7 +171,7 @@ def main():
         if options.outfile:
             f = open(options.outfile,"wb")
         else:
-            f = tempfile.NamedTemporaryFile(delete=False)
+            f = tempfile.NamedTemporaryFile(delete=False, suffix=".htm")
         f.write(source)
         f.close()
     except IOError:

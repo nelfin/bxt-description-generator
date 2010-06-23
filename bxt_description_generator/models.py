@@ -203,7 +203,7 @@ class Track:
         for prop in properties:
             try:
                 setattr(self, prop, tags[prop][0])
-            except ValueError:
+            except (ValueError, KeyError):
                 if not hasattr(self, prop): # Don't clobber discnumber
                     setattr(self, prop, None)
         if not self.title:
