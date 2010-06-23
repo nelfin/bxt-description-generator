@@ -13,6 +13,7 @@ import ConfigParser
 from models import *
 from jinja2 import Environment, PackageLoader
 from optparse import OptionParser
+import tempfile
 try:
     import imp
     imp.reload(sys)
@@ -110,8 +111,6 @@ def main():
             if extension in ignoreFileExtensions:
                 continue
             elif extension in imageFileExtensions:
-                ### FIXME:
-                sys.stderr.write("{0} {1}\n".format(branch, filename))
                 add_scan(branch, filename, scans)
             else:
                 add_track(Track(os.path.join(branch, filename)), albums)
@@ -157,7 +156,7 @@ def main():
         if options.outfile:
             f = open(options.outfile,"wb")
         else:
-            f = tempfile.NamedTemporaryFile(delete=False)
+            f = tempfile.NamedTemporaryFile(delete=False, suffix=".htm")
         f.write(output)
         f.close()
     except IOError:
