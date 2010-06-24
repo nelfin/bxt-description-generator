@@ -113,14 +113,14 @@ def generate_albums(directory, options):
     merge_metafiles(albums, metafiles)
     merge_scans(albums, scans)
 
-    return albums
-
-def render_source(template, albums):
     root_node = albums.values()
     root_node.sort(natural_sort)
     for album in root_node:
         album.tidy()
 
+    return root_node
+
+def render_source(template, root_node):
     env = Environment(loader=PackageLoader("bxt_description_generator", "templates"))
     env.filters["cleanify"] = cleanify
     env.filters["pretty_time"] = pretty_time
