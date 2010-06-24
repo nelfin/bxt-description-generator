@@ -166,8 +166,6 @@ class BDG_GUI:
         self.source_tvw.set_cursor_visible(False)
         self.source_tvw.show()
 
-        self.source_tbf.set_text("Hello world!")
-
         self.source_lbl = gtk.Label("Source")
         self.right_box.append_page(self.source_vbx, self.source_lbl)
         ### End Right Box
