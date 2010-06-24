@@ -87,8 +87,7 @@ def generate_albuminfo(albums, metafiles, directory):
     except:
         sys.stderr.write("Unable to write to {0}".format(filepath))
 
-
-def generate_source(template, directory, options):
+def generate_albums(directory, options):
     scans = {}
     albums = {}
     metafiles = {}
@@ -114,6 +113,9 @@ def generate_source(template, directory, options):
     merge_metafiles(albums, metafiles)
     merge_scans(albums, scans)
 
+    return albums
+
+def render_source(template, albums):
     root_node = albums.values()
     root_node.sort(natural_sort)
     for album in root_node:
@@ -126,4 +128,7 @@ def generate_source(template, directory, options):
     source = template.render(albums=root_node).encode("utf-8")
 
     return source
+
+def generate_source(template, directory, options):
+    return render_source(template, generate_albums(directory, options))
 
