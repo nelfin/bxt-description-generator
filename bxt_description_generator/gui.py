@@ -50,16 +50,20 @@ class BDG_GUI:
         webbrowser.open_new_tab(self.preview_path)
         return None
 
-    def btn_generate_clicked(self, widget, data=None):
+    def start_generate_source(self, template, directory):
         global parser
         (options, args) = parser.parse_args()
-        directory = self.files_widget.get_filename()
-        source = bdg.generate_source(self.template, directory, options)
+        source = bdg.generate_source(template, directory, options)
         ## suffix = ".htm" for the sake of IE
         with tempfile.NamedTemporaryFile(delete=False,suffix=".htm") as f:
             f.write(source)
         self.update_source(source)
         self.update_preview_button(f.name)
+        ## Some progressbar action maybe?
+
+    def btn_generate_clicked(self, widget, data=None):
+        directory = self.files_widget.get_filename()
+        self.start_generate_source(self.template, directory)
         return None
 
     def update_source(self, source):
