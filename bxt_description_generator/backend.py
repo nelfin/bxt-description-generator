@@ -8,6 +8,13 @@ import ConfigParser
 from jinja2 import Environment, PackageLoader
 from models import *
 
+def create_colour_scheme(cfg):
+    """ Create a colour scheme data structure from a loaded scheme file (ConfigParser) """
+    colour_scheme = {}
+    for section in cfg.sections():
+        colour_scheme[section] = dict(cfg.items(section))
+    return colour_scheme
+
 def absolute_path(path):
     """ Get the absolute path of a file, from this script """
     root = os.path.dirname(os.path.realpath(__file__))
@@ -120,15 +127,21 @@ def generate_albums(directory, options):
 
     return root_node
 
-def render_source(template, root_node):
+def render_source(template, root_node, colour_scheme={}):
     env = Environment(loader=PackageLoader("bxt_description_generator", "templates"))
     env.filters["cleanify"] = cleanify
     env.filters["pretty_time"] = pretty_time
     template = env.get_template(template)
-    source = template.render(albums=root_node).encode("utf-8")
+    source = template.render(albums=root_node, **colour_scheme).encode("utf-8")
 
     return source
 
 def generate_source(template, directory, options):
-    return render_source(template, generate_albums(directory, options))
+    try:
+        scheme_cfg = ConfigParser.ConfigParser()
+        scheme_cfg.read(options.colour_scheme)
+        colour_scheme = create_colour_scheme(scheme_cfg)
+    except Exception:
+        colour_scheme = {}
+    return render_source(template, generate_albums(directory, options), colour_scheme)
 
