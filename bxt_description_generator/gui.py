@@ -63,12 +63,15 @@ class BDG_GUI:
 
     def btn_generate_clicked(self, widget, data=None):
         directory = self.files_widget.get_filename()
-        self.start_generate_source(self.template, directory)
+        self.start_generate_source(self.get_template(), directory)
         return None
 
     def update_source(self, source):
         self.source_tbf.set_text(source)
         return None
+
+    def get_template(self):
+        return self.template
 
     def destroy(self, widget, data=None):
         gtk.main_quit()
