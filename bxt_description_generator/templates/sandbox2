@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <!-- REMOVE THIS AFTER TESTING!! -->
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+    <script type="text/Javascript" src="http://s1.bakabt.com/static/common.min.js"></script>
+
+    <style type="text/css">
+        body {
+            font-size: 10pt;
+        }
+        
+        .album {
+            font-weight: bold;
+            color: black;
+        }
+        
+        .menufield {
+            width: 220px;
+            height: 850px;
+            float: left;
+            border-width: 1px;
+            border-color: black;
+            border-style: solid;
+	    color: {{ global.text }};
+        }
+        
+        .menuitem {
+            font-family:  "Joyful Juliana", Purisa, Cambria, "Times New Roman", serif;
+	    color: {{ global.text }};
+            background-color: red;
+            width: 200px;
+            margin-top: 3px;
+            float: left;
+            clear: left;
+            overflow: hidden;
+            border-width: 1px;
+            border-color: black;
+            border-style: solid;
+            margin-left: 5px;
+            padding-left: 5px;
+        }
+        
+        .subitem {
+            font-family:  "Joyful Juliana", Purisa, Cambria, "Times New Roman", serif;
+            margin-left: 10px;
+            margin-top: 3px;
+            background-color: #f90;
+            width: 200px;
+            float: left;
+            clear: left;
+            overflow: hidden;
+            border-width: 1px;
+            border-color: black;
+            border-style: solid;
+            padding-left: 5px;
+            color: #ffffff;
+        }
+        
+        .link {
+            text-decoration: none;
+            cursor: pointer;
+            color: #ffffff;
+        }
+        
+        .image {
+            margin-top: 5px;
+            float: right;
+        }
+        
+        .content, #source, #css {
+            padding: 0;
+            float: left;
+            margin-left: 2px;
+            border: 1px solid black;
+            color: black;
+        }
+        
+        .content {
+            padding-left: 2px;
+            padding-right: 2px;
+            display: none;
+        }
+
+        #css {
+            clear: right;
+            width: 700px;
+            height: 650px;
+        }
+        
+        #source {
+            margin-top: 2px;
+            width: 1418px;
+            height: 196px;
+        }
+
+        #source-text, #css-text {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            width: 100%;
+            height: 100%;
+            font-family: monospace;
+            font-size: 8pt;
+        }         
+    </style>
+    <style type="text/css" name="variable" id="edit-style">
+.image {
+    margin-top: 5px;
+    float: right;
+}
+
+.content {
+    width: 710px;
+    height: 650px;
+    background-color: {{ primary.shadow }};
+}
+
+.item {
+    font-family: "Joyful Juliana", Purisa, Monospace, FreeMono, monospace;
+    margin-bottom: 0em;
+    font-size: 12pt;
+    font-weight: bold;
+    color: {{ primary.midtone }};
+}
+
+.list {
+    font-family: "Joyful Juliana", Purisa, Monospace, FreeMono, monospace;
+    margin-top: 0em;
+    font-size: 8pt;
+    padding-left: 10px;
+    color: {{ secondary.midtone }};
+}
+    </style>
+</head>
+<body>
+
+    <script language="javascript">
+        function togglecontent(divid) {
+            $('.content').css("display", "none");
+            $('.content').removeClass("current");
+            $('#'+divid).css("display", "block");
+            $('#'+divid).addClass("current");
+            $('#source-text').text($('.current').html());
+        }
+        function toggleMenus() {
+            if ($('.menu').css("display") == "none") {
+                $('.menu').show();
+            } else {
+                $('.menu').hide();
+            }
+        }
+        function updateStyle() {
+            $('#edit-style').text($('#css-text').val());
+        }
+        $(document).ready(function(){
+            $('#css-text').text($('#edit-style').text());
+            setInterval(updateStyle,2000);
+        });
+    </script>
+    
+    <div class="menufield" id="menu">
+        <a href="#" onclick="toggleMenus()" style="font-size: small; margin-left: 5px; margin-top: 5px;">show/hide all</a><br />
+        
+        {% for album in albums %}
+        <div class="menuitem" id="main1"><a class="link" onclick="togglecontent('{{album.name|cleanify}}');">{{album.name|escape}}</a></div>
+        {% endfor %}
+    
+        <div class="menuitem" style="margin-top:50px;" id="main1"><a class="link" onclick="togglecontent('changelog')">Information</a></div>
+        
+    </div>
+    
+    {# This looks horrible, but it produces nice, clean markup. If it looked nicer, it'd produce uglier markup #}
+{% for album in albums %}
+<div class="content" id="{{album.name|cleanify}}">
+<div style="float: left; width: 100%;">
+    <div class="image">
+        <img src="{{album.album_art}}" />
+    </div>
+    <p class="item">Album Info:</p>
+    <p class="list">
+        Title: {{album.name|escape}}<br />
+        Artist: {{album.artists|join(', ')|escape}}<br />
+    </p>
+    <p class="item">File Info:</p>
+    <p class="list">
+        {% if album.bitrate %}Bitrate : {{album.bitrate}} kbit/s<br />{% endif %}
+        Codec : {{album.extensions|join(', ')}}<br />
+        Ripper : {{album.ripper|escape}}<br />
+    </p>
+    {% for disc in album %}
+    <p class="item">Track List:</p>
+    <p class="list">{% for track in disc %}
+        {{track.tracknumber}}. {{track.title|escape}}, {{track.bitrate}} kbit/s<br />{% endfor %}
+    </p>
+    {% endfor %}
+    {% if album.scans %}<p class="item">Scans List:</p>
+    <p class="list">{% for file in album.scans %}
+        {{loop.index}}. {{file|escape}}<br />{% endfor %}
+    </p>{% endif %}
+</div>
+</div>
+{% endfor %}
+    
+    <!----------------------------------------------------------------------------->
+    
+    <!-- Content changelog -->
+<div class="content" id="changelog">
+    <div style="float:left; width: 100%;">
+        <p class="item">Uploader's Comment</p>
+        <p class="list"></p>
+        
+        <p class="item">Change Log</p>
+        <p class="list"></p>
+        
+        <p class="item">Links</p>
+        <p class="list"></p>
+    </div>
+    <div class="image"></div>
+</div>
+    
+    <!-- Content placeholder -->
+    <div class="content" style="display: block;" id="default">
+        <div style="float: left;">
+            <p class="item"></p>
+            <p class="list"></p>
+        </div>
+        <div class="image"></div>
+    </div>
+
+    <div id="css"><textarea id="css-text">&nbsp;</textarea></div>
+    <div id="source"><textarea id="source-text">&nbsp;</textarea></div>
+
+<div style="clear: both;"></div>
+
+</body>
+
+</html>

@@ -25,7 +25,7 @@ except (AssertionError, ImportError):
 
 class BDG_GUI:
     preview_path = None
-    template = "k_on_boxes" ## FIXME
+    template = "sandbox2" ## FIXME
 
     def update_preview_cb(self, file_chooser, preview_pic, preview_lbl):
         filename = file_chooser.get_preview_filename()
@@ -186,6 +186,8 @@ if __name__ == "__main__":
     parser.add_option("-i","--album-info",dest="album_info",default=None,
                       help="interactively prompt for album meta-info",
                       action="store_true")
+    parser.add_option("-c","--colour-scheme",dest="colour_scheme",default=None,
+                      help="colour scheme filename",metavar="FILE")
     gui = BDG_GUI()
     exit(gui.main())
 
