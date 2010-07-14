@@ -54,7 +54,10 @@ class BDG_GUI:
     def start_generate_source(self, template, directory):
         global parser
         (options, args) = parser.parse_args()
-        source = bdg.generate_source(template, directory, options)
+        directory = self.files_widget.get_filename()
+        albums = bdg.generate_albums(directory, options)
+        source = bdg.render_source(self.template, albums)
+        self.update_treeview(albums)
         ## suffix = ".htm" for the sake of IE
         with tempfile.NamedTemporaryFile(delete=False,suffix=".htm") as f:
             f.write(source)
@@ -66,6 +69,16 @@ class BDG_GUI:
         directory = self.files_widget.get_filename()
         t = threading.Thread(target=self.start_generate_source, args=(self.get_template(), directory))
         t.start()
+        return None
+
+    def update_treeview(self, albums):
+        self.tree_treestore.clear()
+        for album in albums:
+            p_album = self.tree_treestore.append(None, [album.name])
+            for disc in album:
+                p_disc = self.tree_treestore.append(p_album, ["Disc {0}".format(disc.number)])
+                for track in disc:
+                    self.tree_treestore.append(p_disc, [track.title])
         return None
 
     def update_source(self, source):
@@ -166,6 +179,33 @@ class BDG_GUI:
         self.source_lbl = gtk.Label("Source")
         self.right_box.append_page(self.source_vbx, self.source_lbl)
         ### End Right Box
+
+        ### Tree View
+        self.tree_vbox = gtk.VBox(False, 0)
+        self.tree_vbox.set_border_width(10)
+        self.tree_vbox.set_size_request(700,700)
+        self.tree_vbox.show()
+
+        self.tree_win = gtk.ScrolledWindow()
+        self.tree_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.tree_vbox.pack_start(self.tree_win)
+        self.tree_win.show()
+
+        self.tree_treestore = gtk.TreeStore(str)
+        self.tree_treeview = gtk.TreeView(self.tree_treestore)
+        self.tree_tvcolumn = gtk.TreeViewColumn("Album")
+        self.tree_treeview.append_column(self.tree_tvcolumn)
+        self.tree_cell = gtk.CellRendererText()
+        self.tree_tvcolumn.pack_start(self.tree_cell, True)
+        self.tree_tvcolumn.add_attribute(self.tree_cell, "text", 0)
+        self.tree_treeview.set_search_column(0)
+        self.tree_tvcolumn.set_sort_column_id(0)
+
+        self.tree_win.add(self.tree_treeview)
+        self.tree_treeview.show()
+        self.tree_lbl = gtk.Label("Tree")
+        self.right_box.append_page(self.tree_vbox,self.tree_lbl)
+        ### End Tree View
 
         ###
         ## SIGNAL HANDLERS
